@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>進捗ログ自動生成ツール - ブラックハンター・ミラ</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    
+    h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+      color: #2d3748;
+    }
+    
+    .subtitle {
+      color: #718096;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+    
+    .input-section {
+      margin-bottom: 30px;
+    }
+    
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #4a5568;
+    }
+    
+    textarea, input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+    
+    textarea:focus, input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+    
+    input[type="number"] {
+      width: 150px;
+    }
+    
+    .btn-primary {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 14px 32px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-right: 10px;
+    }
+    
+    .btn-primary:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    
+    .output-section {
+      margin-top: 40px;
+      padding-top: 30px;
+      border-top: 2px solid #e2e8f0;
+    }
+    
+    .output-box {
+      background: #f7fafc;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      position: relative;
+    }
+    
+    .output-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #667eea;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+    
+    .output-text {
+      white-space: pre-wrap;
+      line-height: 1.8;
+      color: #2d3748;
+      font-size: 14px;
+    }
+    
+    .btn-copy {
+      background: #48bb78;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: all 0.2s;
+    }
+    
+    .btn-copy:hover {
+      background: #38a169;
+    }
+    
+    .char-count {
+      font-size: 12px;
+      color: #a0aec0;
+      margin-top: 5px;
+    }
+    
+    .footer {
+      margin-top: 40px;
+      text-align: center;
+      color: #a0aec0;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>📝 進捗ログ自動生成ツール</h1>
+  <div class="subtitle">失業中でも着実に前進。今日の行動を3パターンで記録する。</div>
+  
+  <div class="input-section">
+    <label>失業何日目？</label>
+    <input type="number" id="dayCount" value="1" min="1">
+  </div>
+  
+  <div class="input-section">
+    <label>今日やったこと（箇条書きでOK）</label>
+    <textarea id="todayActions" placeholder="例：&#10;・ChatGPTでツール作成&#10;・noteの構成を考えた&#10;・X投稿3本"></textarea>
+  </div>
+  
+  <button class="btn-primary" onclick="generateLogs()">▶ 3パターン生成</button>
+  
+  <div id="outputs" style="display: none;">
+    <div class="output-section">
+      <h2 style="margin-bottom: 20px; font-size: 20px;">生成結果</h2>
+      
+      <div class="output-box">
+        <div class="output-title">① 淡々（事実のみ）- X向け</div>
+        <div class="output-text" id="output1"></div>
+        <div class="char-count" id="count1"></div>
+        <button class="btn-copy" onclick="copyToClipboard('output1')">📋 コピー</button>
+      </div>
+      
+      <div class="output-box">
+        <div class="output-title">② 正直な弱音 - X向け</div>
+        <div class="output-text" id="output2"></div>
+        <div class="char-count" id="count2"></div>
+        <button class="btn-copy" onclick="copyToClipboard('output2')">📋 コピー</button>
+      </div>
+      
+      <div class="output-box">
+        <div class="output-title">③ 少し前向き - X向け</div>
+        <div class="output-text" id="output3"></div>
+        <div class="char-count" id="count3"></div>
+        <button class="btn-copy" onclick="copyToClipboard('output3')">📋 コピー</button>
+      </div>
+      
+      <div class="output-box">
+        <div class="output-title">④ note用（詳細版）</div>
+        <div class="output-text" id="output4"></div>
+        <div class="char-count" id="count4"></div>
+        <button class="btn-copy" onclick="copyToClipboard('output4')">📋 コピー</button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="footer">
+    Created by ブラックハンター・ミラ | AIで生存戦略中
+  </div>
+</div>
+
+<script>
+function generateLogs() {
+  const dayCount = document.getElementById('dayCount').value;
+  const actions = document.getElementById('todayActions').value.trim();
+  
+  if (!actions) {
+    alert('今日やったことを入力してください');
+    return;
+  }
+  
+  const today = new Date();
+  const dateStr = `${today.getFullYear()}/${today.getMonth()+1}/${today.getDate()}`;
+  
+  // 箇条書きを整形
+  const actionList = actions.split('\n')
+    .filter(line => line.trim())
+    .map(line => line.replace(/^[・・-]\s*/, ''))
+    .join('\n・');
+  
+  // パターン1: 淡々
+  const output1 = `失業${dayCount}日目
+
+今日やったこと：
+・${actionList}
+
+以上。続ける。`;
+
+  // パターン2: 弱音
+  const output2 = `失業${dayCount}日目
+
+今日はこれだけ：
+・${actionList}
+
+正直きついし不安もある。
+でも手は止めない。`;
+
+  // パターン3: 前向き
+  const output3 = `失業${dayCount}日目
+
+今日も少しだけ進めた：
+・${actionList}
+
+小さいけど、確実に前進してる。`;
+
+  // パターン4: note用
+  const output4 = `# 失業${dayCount}日目の記録
+
+**日付:** ${dateStr}
+
+## 今日やったこと
+
+・${actionList}
+
+## 振り返り
+
+失業中だからこそ、毎日の積み重ねが大事。
+完璧じゃなくていい。
+続けることに価値がある。
+
+---
+
+※このツールで生成しました
+→ [進捗ログ自動生成ツール]`;
+
+  // 出力
+  document.getElementById('output1').textContent = output1;
+  document.getElementById('output2').textContent = output2;
+  document.getElementById('output3').textContent = output3;
+  document.getElementById('output4').textContent = output4;
+  
+  // 文字数カウント
+  document.getElementById('count1').textContent = `文字数: ${output1.length}字`;
+  document.getElementById('count2').textContent = `文字数: ${output2.length}字`;
+  document.getElementById('count3').textContent = `文字数: ${output3.length}字`;
+  document.getElementById('count4').textContent = `文字数: ${output4.length}字`;
+  
+  // 出力エリアを表示
+  document.getElementById('outputs').style.display = 'block';
+  
+  // 出力エリアまでスクロール
+  document.getElementById('outputs').scrollIntoView({ behavior: 'smooth' });
+}
+
+function copyToClipboard(elementId) {
+  const text = document.getElementById(elementId).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    alert('✅ コピーしました！Xやnoteに貼り付けできます');
+  }).catch(() => {
+    alert('コピーに失敗しました。手動でコピーしてください');
+  });
+}
+</script>
+
+</body>
+</html>
